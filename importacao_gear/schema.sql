@@ -90,3 +90,89 @@ CREATE INDEX IF NOT EXISTS ix_demandas_geocode   ON demandas (geocode);
 --       FROM stg_execucoes e JOIN demandas d USING (id_origem)
 --     ON CONFLICT DO NOTHING;
 -- ---------------------------------------------------------------------------
+
+-- ===========================================================================
+-- CENTRAL DE NUMERAÇÃO (saída de importar_numeracao.py)
+-- ===========================================================================
+-- Uma sequência = um contador. Igual às planilhas:
+--   DOCUMENTO -> por tipo de documento + ano (compartilhado entre setores)
+--   PROJETO   -> por regional + ano
+--   OS        -> por contrato + ano
+CREATE TABLE IF NOT EXISTS num_sequencias (
+    id              BIGSERIAL PRIMARY KEY,
+    familia         TEXT NOT NULL CHECK (familia IN ('DOCUMENTO','PROJETO','OS')),
+    sequencia       TEXT NOT NULL,          -- 'NOTA TÉCNICA', 'RE', 'TONY PLACAS'...
+    ano             INTEGER NOT NULL,
+    ultimo_numero   INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (familia, sequencia, ano)
+);
+
+CREATE TABLE IF NOT EXISTS num_numeros (
+    id                  BIGSERIAL PRIMARY KEY,
+    sequencia_id        BIGINT REFERENCES num_sequencias(id),
+    sequencial          INTEGER,
+    numero              TEXT NOT NULL,      -- exatamente como foi emitido
+    numero_padronizado  TEXT,
+    tipo                TEXT,
+    setor               TEXT,
+    regional_sigla      TEXT,
+    contrato            TEXT,
+    data_emissao        DATE,
+    responsavel         TEXT,
+    assunto             TEXT,
+    local               TEXT,
+    regional            TEXT,
+    situacao            TEXT NOT NULL DEFAULT 'EMITIDO'
+                        CHECK (situacao IN ('EMITIDO','CANCELADO','NAO_UTILIZADO','CONFLITO')),
+    origem              TEXT NOT NULL DEFAULT 'SISTEMA',  -- 'PLANILHA' para o legado importado
+    arquivo_origem      TEXT,
+    linha_excel         INTEGER,
+    criado_em           TIMESTAMP NOT NULL DEFAULT now()
+);
+-- Sem UNIQUE em (sequencia_id, sequencial): o legado TEM números repetidos (situacao = 'CONFLITO').
+-- Para números novos, a unicidade é garantida pela função abaixo e por este índice parcial:
+CREATE UNIQUE INDEX IF NOT EXISTS ux_num_numeros_novos
+    ON num_numeros (sequencia_id, sequencial) WHERE origem = 'SISTEMA';
+
+-- Emissão atômica do próximo número (sem corrida entre dois usuários ao mesmo tempo)
+CREATE OR REPLACE FUNCTION num_proximo(p_familia TEXT, p_sequencia TEXT, p_ano INTEGER)
+RETURNS INTEGER LANGUAGE sql AS $$
+    INSERT INTO num_sequencias (familia, sequencia, ano, ultimo_numero)
+    VALUES (p_familia, p_sequencia, p_ano, 1)
+    ON CONFLICT (familia, sequencia, ano)
+    DO UPDATE SET ultimo_numero = num_sequencias.ultimo_numero + 1
+    RETURNING ultimo_numero;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Carga do legado (psql), a partir de importacao_gear/:
+--
+--   CREATE TEMP TABLE stg_num (familia TEXT, numero TEXT, numero_padronizado TEXT, tipo TEXT, sigla TEXT,
+--     setor_num TEXT, regional_sigla TEXT, contrato TEXT, sequencial NUMERIC, ano NUMERIC, escopo TEXT,
+--     data DATE, setor TEXT, tipo_planilha TEXT, responsavel TEXT, assunto TEXT, local TEXT, regional TEXT,
+--     status TEXT, observacoes TEXT, dimensao_m TEXT, repetido BOOLEAN, arquivo TEXT, aba TEXT, linha_excel INTEGER);
+--   \copy stg_num FROM 'saida/numeracao/numeros_utilizados.csv' CSV HEADER
+--
+--   INSERT INTO num_sequencias (familia, sequencia, ano, ultimo_numero)
+--     SELECT familia, split_part(escopo,'|',2), ano::int, max(sequencial)::int
+--       FROM stg_num WHERE escopo IS NOT NULL GROUP BY 1,2,3
+--     ON CONFLICT (familia, sequencia, ano) DO UPDATE
+--       SET ultimo_numero = GREATEST(num_sequencias.ultimo_numero, EXCLUDED.ultimo_numero);
+--
+--   INSERT INTO num_numeros (sequencia_id, sequencial, numero, numero_padronizado, tipo, setor, regional_sigla,
+--       contrato, data_emissao, responsavel, assunto, local, regional, situacao, origem, arquivo_origem, linha_excel)
+--     SELECT s.id, n.sequencial::int, n.numero, n.numero_padronizado, n.tipo, n.setor_num, n.regional_sigla,
+--            n.contrato, n.data, n.responsavel, n.assunto, n.local, n.regional,
+--            CASE WHEN n.repetido THEN 'CONFLITO' ELSE 'EMITIDO' END, 'PLANILHA', n.arquivo, n.linha_excel
+--       FROM stg_num n
+--       LEFT JOIN num_sequencias s ON s.familia = n.familia AND s.sequencia = split_part(n.escopo,'|',2)
+--                                 AND s.ano = n.ano::int;
+--
+--   -- lacunas: registrar como NAO_UTILIZADO para nunca serem reaproveitadas
+--   INSERT INTO num_numeros (sequencia_id, sequencial, numero, situacao, origem)
+--     SELECT s.id, g, s.sequencia || ' ' || g || '/' || s.ano, 'NAO_UTILIZADO', 'PLANILHA'
+--       FROM num_sequencias s, generate_series(1, s.ultimo_numero) g
+--      WHERE NOT EXISTS (SELECT 1 FROM num_numeros x WHERE x.sequencia_id = s.id AND x.sequencial = g);
+--
+--   -- emitir um número novo:  SELECT num_proximo('DOCUMENTO', 'NOTA TÉCNICA', 2026);  -- 1057
+-- ---------------------------------------------------------------------------

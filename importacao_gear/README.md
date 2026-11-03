@@ -108,5 +108,74 @@ registradas como AVISO.
 - Quando o sistema estiver no ar, o ideal é que as demandas novas sejam
   cadastradas direto nele e que a planilha deixe de ser a fonte.
 
+## 5. Central de Numeração (planilhas de numeração DET-DPL e Ordens de Serviço)
+
+O objetivo é registrar **todo número já usado**, para que a Central continue
+cada sequência a partir do último número e nunca repita um número já emitido.
+
+```bash
+python3 importar_numeracao.py --demandas saida/demandas.csv \
+    "NUMERAÇÃO DE DOCUMENTAÇÃO 2024 - DET-DPL.xlsx" "NUMERAÇÃO DE DOCUMENTAÇÃO 2025 - DET-DPL.xlsx" \
+    "NUMERAÇÃO DE DOCUMENTAÇÃO 2026 - DET-DPL.xlsx" \
+    "NUMERAÇÃO DE ORDEM DE SERVIÇO 2025.xlsx" "NUMERAÇÃO DE ORDEM DE SERVIÇO 2026.xlsx"
+```
+
+O script lê as abas DOCUMENTAÇÃO, VISTORIAS, PROJETOS e ORDEM DE SERVIÇO e
+grava os resultados em `saida/numeracao/`. Na execução atual foram 14.054
+números em 69 sequências.
+
+### Como as planilhas numeram (e por que isso importa)
+
+Nenhum número foi digitado: todos são **fórmulas** (`COUNTIFS`) que contam as
+linhas acima com o mesmo tipo, regional ou contrato.
+
+| Família | Exemplo | Contador |
+|---|---|---|
+| Documento | `NT GEAR.1052.2026` | por **tipo de documento**, compartilhado entre setores: a NT 1051 é do GEAR, a 1045 é do GMON |
+| Projeto | `PROJETO GEAR RE 002.2026` | por **regional** (GEAR e GPRO dividem o mesmo contador) |
+| Ordem de serviço | `OS 001.IMP.TONY PLACAS.26` | por **contrato** |
+
+Consequências:
+
+- **O número exibido hoje pode não ser o que foi impresso no documento.** Se
+  alguém inseriu, apagou, ordenou ou mudou o tipo de uma linha, todos os
+  números abaixo dela foram recalculados. O script guarda o valor de agora e
+  compara com as NTs e projetos citados nas demandas (`vinculos_demandas.csv`).
+  Das 2.288 citações, 2.038 conferem, 243 têm o mesmo número com outro setor
+  e 7 não existem no registro.
+- **O ano não zera o contador; o arquivo é que zera.** Linhas de 2025 lançadas
+  na planilha de 2026 consumiram os números 1 a 3 das NTs de 2026, que por
+  isso começam em 4. Linhas de 2025 lançadas na planilha de 2024 também
+  geraram números repetidos.
+- **Siglas que mudaram no meio do caminho** (`DILIGÊNCIA` → `DILIG.`,
+  `RELATÓRIO TÉCNICO` → `REL. TÉC.`) foram unificadas em um tipo canônico
+  (`TIPOS` no script).
+
+### O que revisar em `revisao_numeracao.xlsx`
+
+1. Aba `proximos_numeros`: o último número de cada sequência de 2026 e o
+   próximo que a Central vai emitir (por exemplo: NT 1057, OF. INT. 232,
+   PROJETO NA 068, OS TONY PLACAS 061).
+2. Pendências **ERRO**: 66 registros com número repetido. Exemplos:
+   `NT GEAR.1361.2025` usado 5 vezes e `PARECER GLIP.3477.2024` usado 4 vezes.
+   Também há números de outro ano lançados na planilha errada. Esses registros
+   entram na Central como `CONFLITO`. Confirme no documento emitido (SEI,
+   arquivo ou PDF) qual número cada um recebeu.
+3. Lacunas: 43 números que ninguém usa, entre eles as NTs 1 a 3 de 2026.
+   Entram como `NAO_UTILIZADO` e **nunca são reaproveitados**.
+
+### Virada para a Central (sugestão)
+
+1. Escolha um dia de corte. Na véspera, **congele as planilhas**: substitua as
+   fórmulas por valores (Copiar → Colar valores) para que nenhum número mude.
+2. Rode `importar_numeracao.py` e faça a carga com os comandos do fim de
+   `schema.sql`. Eles criam as sequências com o último número de cada uma e
+   registram os conflitos e as lacunas.
+3. A partir do corte, números novos saem **só** da Central, pela função
+   `num_proximo()`, que é atômica (dois usuários nunca recebem o mesmo
+   número). As planilhas ficam somente para leitura.
+4. Em 1º de janeiro, cada sequência recomeça em 1 automaticamente, porque o
+   ano faz parte da chave.
+
 > As planilhas e a pasta `saida/` têm dados pessoais (nomes, e-mails e
 > telefones) e estão no `.gitignore`. Não as envie ao repositório.
