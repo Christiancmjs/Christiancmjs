@@ -1,0 +1,6 @@
+# Planilhas e saídas contêm dados pessoais (nomes, e-mails, telefones): não versionar
+*.xlsx
+*.xls
+*.zip
+importacao_gear/saida/
+__pycache__/

@@ -1,0 +1,95 @@
+campo,valor_origem,valor_destino,mover_para,revisar,observacao
+canal_entrada,WHATSAAP,WHATSAPP,,,erro de digitação
+canal_entrada,PRESIDENCIAL,PRESENCIAL,,,erro de digitação
+canal_entrada,GABINETE,,remetente,S,"GABINETE é remetente, não canal; canal fica vazio"
+canal_entrada,GABINETE PRESIDÊNCIA,,remetente,S,"idem"
+canal_entrada,OUVIDORIA,,remetente,S,"OUVIDORIA é remetente, não canal"
+canal_entrada,DET,,remetente,S,setor é remetente
+canal_entrada,DOT,,remetente,S,setor é remetente
+canal_entrada,INTERNO,,,S,canal não identificado
+canal_entrada,0,,,,valor vazio
+canal_entrada,JÚNIOR ZICA,,,S,nome de pessoa no campo canal
+remetente,REUNIÃO,,canal_entrada,S,REUNIÃO é canal
+remetente,GABINETE TRANSCON,GABINETE PRESIDÊNCIA,,S,
+remetente,ÓRGÃO PÚBLICO,ORGÃO PÚBLICO,,,grafia padronizada da lista REFERÊNCIAS
+remetente,"GABINETE PRESIDÊNCIA
+REGIONAL",GABINETE PRESIDÊNCIA,,S,dois remetentes; mantido o primeiro
+remetente,"LICENCIAMENTO
+ATENDIMENTO AO CIDADÃO",ATENDIMENTO CIDADÃO,,S,
+origem,E-MAIL,,canal_entrada,S,"E-MAIL é canal de entrada, não origem; origem fica vazia"
+origem,PRESENCIAL,,canal_entrada,S,"PRESENCIAL é canal de entrada"
+origem,REUNIÃO,,canal_entrada,S,"REUNIÃO é canal de entrada"
+origem,GABINETE,GABINETE PRESIDÊNCIA,,S,
+origem,PRESIDÊNCIA,GABINETE PRESIDÊNCIA,,S,
+origem,INTERNO,INTERNA,,,
+origem,DIRETORIA,INTERNA,,S,
+origem,COMISSÃO DE MOBILIDADE/TRANSCON,INTERNA,,S,
+origem,ÓRGÃO PÚBLICO,ORGÃO PÚBLICO,,,
+origem,SEGOV,ORGÃO PÚBLICO,,S,
+origem,COMFISC,ORGÃO PÚBLICO,,S,
+origem,POLICIA MILITAR,SERVIÇOS DE SEGURANÇA,,,
+origem,POLÍCIA CIVIL,SERVIÇOS DE SEGURANÇA,,,
+origem,ADMINISTRAÇÃO REGIONAL RESSACA,ADMINISTRAÇÃO REGIONAL,,,
+viabilidade,NÃO ANALISADO,EM ANÁLISE,,S,valor legado inexistente na lista atual
+viabilidade,DIRECIONADO,NÃO SE APLICA,,S,DIRECIONADO é status; ver campo status
+viabilidade,PROPOSTA ALTERNATIVA,COM CONDICIONANTE,,S,
+viabilidade,EXECUTADO,VIÁVEL,,S,se foi executado era viável
+viabilidade,CONDICIONANTE,COM CONDICIONANTE,,,
+viabilidade,NVIÁVEL,INVIÁVEL,,,erro de digitação
+viabilidade,VIABILIDADE,,,,cabeçalho repetido no meio dos dados
+status,NÃO ANALISADO,EM ANÁLISE,,S,valor legado inexistente na lista atual
+status,EM TRATATIVA,EM ANÁLISE,,S,valor legado
+status,AGUARDA COMISSÃO,EM ANÁLISE,,S,valor legado
+status,NÃO SE APLICA,FINALIZADO,,S,valor legado
+status,DIRECIONANDO,DIRECIONADO,,,
+status,COM CONDICIONANTE,EXECUTADO COM CONDICIONANTE,,S,
+prioridade,BAIXO,BAIXA,,,
+prioridade,NÃO,BAIXA,,S,
+prioridade,NENHUM,BAIXA,,S,
+prioridade,OUTROS,BAIXA,,S,
+prioridade,SIM,ALTA,,S,
+prioridade,PRIORIDADE,ALTA,,S,
+prioridade,ESCOLA,ALTA,motivo_prioridade,S,"legado: motivo da prioridade, guardado em motivo_prioridade"
+prioridade,DOT,ALTA,motivo_prioridade,S,idem
+prioridade,GABINETE,ALTA,motivo_prioridade,S,idem
+prioridade,TÉCNICO,ALTA,motivo_prioridade,S,idem
+prioridade,DIRETORIA,ALTA,motivo_prioridade,S,idem
+prioridade,SAÚDE,ALTA,motivo_prioridade,S,idem
+prioridade,UBS,ALTA,motivo_prioridade,S,idem
+prioridade,PRESIDENCIA,ALTA,motivo_prioridade,S,idem
+prioridade,VAGA PCD,ALTA,motivo_prioridade,S,idem
+prioridade,VAGA IDOSO,ALTA,motivo_prioridade,S,idem
+prioridade,PCD,ALTA,motivo_prioridade,S,idem
+prioridade,10 DEMANDAS,ALTA,motivo_prioridade,S,idem
+prioridade,GERÊNCIA,ALTA,motivo_prioridade,S,idem
+prioridade,COMITÊ GESTOR,ALTA,motivo_prioridade,S,idem
+prioridade,CGT,ALTA,motivo_prioridade,S,idem
+prioridade,MANUTENÇÃO EMERGENCIAL,ALTA,motivo_prioridade,S,idem
+prioridade,PARE,ALTA,motivo_prioridade,S,idem
+prioridade,REDUTOR FÍSICO DE VELOCIDADE,ALTA,motivo_prioridade,S,idem
+prioridade,PCMG,ALTA,motivo_prioridade,S,idem
+prioridade,PREFEITURA,ALTA,motivo_prioridade,S,idem
+alteracao_prioridade_externo,VEREADORA,VEREADOR,,,
+alteracao_prioridade_interno,NORMAL,NENHUM,,,
+tipo_intervencao,STATUS,INFORMAÇÃO,,S,pedido de andamento
+tipo_intervencao,NENHUM,OUTROS,,S,
+tipo_intervencao,MARGARIDA,,,S,nome de pessoa no campo
+regional,TODOS,,,S,demanda sem regional específica
+respondido,NÃO SE APLICA,,,,
+respondido,NENHUM,,,,
+respondido,"NÃO
+EX-VEREADOR",NÃO,,,
+remetente,GABINETE,GABINETE PRESIDÊNCIA,,S,
+sub_assunto,PINTURA,OUTRAS SINALIZAÇÕES,,S,
+sub_assunto,REDUTOR DE VELOCIDADE,REDUTOR DE VELOCIDADE (QUEBRA-MOLAS),,,
+sub_assunto,TRAVESSIA ELEVADA,TRAVESSIA ELEVADA (LOMBADA),,,
+sub_assunto,ÁREA ESCOLAR,NENHUM,,S,área escolar é assunto (AREA ESCOLAR)
+sub_assunto,OUTROS,OUTRAS SINALIZAÇÕES,,S,
+alteracao_prioridade_interno,DIT/DET,DET,,S,
+alteracao_prioridade_externo,NORMAL,NENHUM,,,
+origem,ADMINISTRAÇÃO REGIONAL PETROLÂNDIA,ADMINISTRAÇÃO REGIONAL,,,
+origem,ADMINISTRAÇÃO REGIONAL ELDORADO,ADMINISTRAÇÃO REGIONAL,,,
+origem,ESCRITÓRIO POLÍTICO DO VEREADOR ALEX CHIODI,CÂMARA MUNICIPAL,,S,
+origem,TRIGÉSIMO NONO BATAHÃO DE POLICIA MILITAR,SERVIÇOS DE SEGURANÇA,,,
+origem,COMUNICAÇÃO,INTERNA,,S,
+origem,AGUARDA CRONOGRAMA,,,S,valor de status digitado na coluna errada

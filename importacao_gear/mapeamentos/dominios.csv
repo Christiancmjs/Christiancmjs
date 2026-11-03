@@ -1,0 +1,148 @@
+campo,valor
+canal_entrada,E-MAIL
+canal_entrada,PRESENCIAL
+canal_entrada,REUNIÃO
+canal_entrada,WHATSAPP
+remetente,ADMINISTRAÇÃO REGIONAL
+remetente,ATENDIMENTO TRANSCON
+remetente,ATENDIMENTO CIDADÃO
+remetente,CÂMARA MUNICIPAL
+remetente,CIVIL
+remetente,COMITÊ GESTOR
+remetente,COMUNICAÇÃO TRANSCON
+remetente,EDUCAÇÃO TRANSCON
+remetente,DET
+remetente,DIT
+remetente,DOT
+remetente,DPL
+remetente,ESCOLA
+remetente,GABINETE PRESIDÊNCIA
+remetente,GTRAN
+remetente,JURÍDICO
+remetente,ORGÃO PÚBLICO
+remetente,OUTROS
+remetente,OUVIDORIA
+remetente,PARTICIPAÇÃO POPULAR
+remetente,REGIONAL
+origem,ADMINISTRAÇÃO REGIONAL
+origem,CÂMARA DOS DEPUTADOS
+origem,CÂMARA MUNICIPAL
+origem,CIVIL
+origem,COMITÊ GESTOR
+origem,DET
+origem,DIT
+origem,DOT
+origem,DPL
+origem,ESCOLA
+origem,GABINETE PRESIDÊNCIA
+origem,INTERNA
+origem,MINISTÉRIO PÚBLICO
+origem,ORGÃO PÚBLICO
+origem,OUTROS
+origem,OUVIDORIA
+origem,REGIONAL
+origem,SERVIÇOS DE SAÚDE
+origem,SERVIÇOS DE SEGURANÇA
+viabilidade,VIÁVEL
+viabilidade,INVIÁVEL
+viabilidade,COM CONDICIONANTE
+viabilidade,EM ANÁLISE
+viabilidade,NÃO SE APLICA
+status,EM ANÁLISE
+status,AGUARDA CRONOGRAMA
+status,DIRECIONADO
+status,EXECUTADO
+status,EXECUTADO PARCIAL
+status,EXECUTADO COM CONDICIONANTE
+status,FINALIZADO
+status,INVIÁVEL
+prioridade,ALTA
+prioridade,MÉDIA
+prioridade,BAIXA
+alteracao_prioridade_interno,NENHUM
+alteracao_prioridade_interno,PRESIDENTE
+alteracao_prioridade_interno,DET
+alteracao_prioridade_interno,DOT
+alteracao_prioridade_interno,GABINETE
+alteracao_prioridade_externo,NENHUM
+alteracao_prioridade_externo,VEREADOR
+alteracao_prioridade_externo,REGIONAL
+tipo_intervencao,ESTUDO
+tipo_intervencao,IMPLANTAÇÃO
+tipo_intervencao,MANUTENÇÃO
+tipo_intervencao,READEQUAÇÃO
+tipo_intervencao,REALOCAÇÃO
+tipo_intervencao,REMOÇÃO
+tipo_intervencao,INFORMAÇÃO
+tipo_intervencao,EMERGENCIAL
+tipo_intervencao,OUTROS
+assunto,ABRIGO - PED
+assunto,AREA ESCOLAR
+assunto,ÁREA DE SAÚDE
+assunto,DISPOSITIVOS AUXILIARES
+assunto,DISPOSITIVOS DE VELOCIDADE
+assunto,DISPOSITIVOS ELETRÔNICOS
+assunto,ESTUDO DE CIRCULAÇÃO
+assunto,ESTUDO TÉCNICO
+assunto,HORIZONTAL (PINTURA)
+assunto,OBRAS FÍSICAS
+assunto,OUTROS
+assunto,RECLAMAÇÃO/SUGESTÃO/INFORMAÇÕES
+assunto,VAGAS ESPECIAIS
+assunto,VERTICAL (PLACAS)
+sub_assunto,ACRÉSCIMO CALÇADA
+sub_assunto,ALTA ROTATIVIDADE
+sub_assunto,AMBULÂNCIA
+sub_assunto,BALIZADOR
+sub_assunto,CANTEIRO
+sub_assunto,CARGA E DESCARGA
+sub_assunto,COBERTURA DO PONTO DE ÔNIBUS
+sub_assunto,CONTADOR REGRESSIVO
+sub_assunto,EMBARQUE E DESEMBARQUE DE ESCOLAR
+sub_assunto,FAIXA DE PEDESTRE
+sub_assunto,GRADIL
+sub_assunto,GUARD-RAIL
+sub_assunto,IDOSO
+sub_assunto,LOGRADOURO (NOME DE VIA)
+sub_assunto,MÃO DUPLA
+sub_assunto,MÃO ÚNICA
+sub_assunto,NENHUM
+sub_assunto,OUTRAS SINALIZAÇÕES
+sub_assunto,PARADA OBRIGATÓRIA
+sub_assunto,PCD
+sub_assunto,PCD E IDOSO
+sub_assunto,PONTO DE ÔNIBUS
+sub_assunto,PRISMA DE CONCRETO
+sub_assunto,PROIBIÇÃO DE ESTACIONAMENTO
+sub_assunto,PROIBIÇÃO E PARADA DE ESTACIONAMENTO
+sub_assunto,RADAR
+sub_assunto,RAMPA DE ACESSIBILIDADE
+sub_assunto,REBAIXO
+sub_assunto,REDUÇÃO CALÇADA
+sub_assunto,REDUTOR DE VELOCIDADE (QUEBRA-MOLAS)
+sub_assunto,REGULAMENTAÇÃO DE ESTACIONAMENTO
+sub_assunto,REGULAMENTAÇÃO DE VELOCIDADE
+sub_assunto,ROTATIVO
+sub_assunto,ROTATÓRIA
+sub_assunto,RUA SEM SAÍDA
+sub_assunto,SEMÁFORO
+sub_assunto,SENTIDO PROIBIDO
+sub_assunto,SONORIZADOR
+sub_assunto,TACHÃO
+sub_assunto,TACHINHA
+sub_assunto,TÓTEM
+sub_assunto,TRÁFEGO DE CAMINHÕES
+sub_assunto,TRAVESSIA ELEVADA (LOMBADA)
+sub_assunto,ÁREA DE CONFLITO
+regional,ELDORADO
+regional,INDUSTRIAL
+regional,NACIONAL
+regional,PETROLÂNDIA
+regional,RESSACA
+regional,RIACHO
+regional,SEDE
+regional,VARGEM DAS FLORES
+programa_asfalto_novo,SIM
+programa_asfalto_novo,NÃO
+programa_asfalto_novo,PREVISTO
+programa_asfalto_novo,EM ANDAMENTO
