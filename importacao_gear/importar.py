@@ -514,22 +514,95 @@ def processar_planilha(caminho: Path, aba="GERAL"):
 # ---------------------------------------------------------------------------
 # duplicidades (não remove; apenas sinaliza para decisão humana)
 # ---------------------------------------------------------------------------
-def marcar_duplicatas(demandas):
-    vistos = {}
+RANK_STATUS = {"EXECUTADO": 4, "EXECUTADO COM CONDICIONANTE": 4, "FINALIZADO": 4, "INVIÁVEL": 4,
+               "EXECUTADO PARCIAL": 3, "AGUARDA CRONOGRAMA": 2, "DIRECIONADO": 2, "EM ANÁLISE": 1}
+CHAVE_DUP = ["data_recebimento", "solicitante", "descricao", "logradouro_completo", "assunto"]
+NAO_MESCLAR = {"id_origem", "arquivo_origem", "linha_excel", "hash_conteudo", "ids_consolidados"}
+ANEXAR_DIVERGENTES = ["geocode", "nota_tecnica", "projeto", "registro"]
+
+
+def consolidar_duplicatas(demandas, execs):
+    """Demandas com conteúdo idêntico (data, solicitante, descrição, endereço, assunto) viram UMA só.
+
+    Fica a cópia mais completa (status mais avançado > mais campos preenchidos > a mais recente).
+    Campos vazios dela são completados com os das cópias; protocolos/NTs diferentes vão para
+    observações; execuções são transferidas. As cópias removidas vão para duplicatas_removidas.csv."""
+    grupos = defaultdict(list)
+    for ordem, r in enumerate(demandas):
+        base = "|".join(chave(str(r.get(c) or "")) for c in CHAVE_DUP)
+        r["hash_conteudo"] = hashlib.sha1(base.encode()).hexdigest()
+        r["_ordem"] = ordem
+        grupos[r["hash_conteudo"]].append(r)
+
+    mantidas, removidas, destino = [], [], {}
+    for rs in grupos.values():
+        if len(rs) == 1:
+            rs[0]["ids_consolidados"] = None
+            mantidas.append(rs[0])
+            continue
+        fica = max(rs, key=lambda r: (RANK_STATUS.get(r.get("status"), 0),
+                                      sum(v not in (None, "", False) for v in r.values()), r["_ordem"]))
+        outras = [r for r in rs if r is not fica]
+        for o in outras:
+            for k, v in o.items():
+                if k in NAO_MESCLAR or k.startswith("_") or v in (None, ""):
+                    continue
+                if fica.get(k) in (None, ""):
+                    fica[k] = v
+                elif k in ANEXAR_DIVERGENTES and chave(str(v)) != chave(str(fica[k])):
+                    anexar_obs(fica, f"{k} da linha duplicada {o['id_origem']}: {v}")
+                elif k in ("status", "viabilidade", "respondido") and v != fica[k]:
+                    PEND.add({"id_origem": fica["id_origem"], "arquivo": fica["arquivo_origem"],
+                              "linha_excel": fica["linha_excel"]}, k, str(v),
+                             f"cópia duplicada {o['id_origem']} tinha {k} diferente",
+                             f"mantido '{fica[k]}' (cópia mais avançada/completa)")
+            o["consolidada_em"] = fica["id_origem"]
+            destino[o["id_origem"]] = fica["id_origem"]
+            removidas.append(o)
+            PEND.add({"id_origem": o["id_origem"], "arquivo": o["arquivo_origem"], "linha_excel": o["linha_excel"]},
+                     "*", "", "demanda duplicada (data, solicitante, descrição, endereço e assunto idênticos)",
+                     f"não carregada; consolidada em {fica['id_origem']}", "INFO")
+        fica["ids_consolidados"] = "; ".join(o["id_origem"] for o in outras)
+        mantidas.append(fica)
+
+    mantidas.sort(key=lambda r: r["_ordem"])
+    vistos, novas_execs = set(), []
+    for e in execs:
+        e = dict(e, id_origem=destino.get(e["id_origem"], e["id_origem"]))
+        k = (e["id_origem"], e["tipo_servico"], e["data_execucao"])
+        if k not in vistos:
+            vistos.add(k)
+            novas_execs.append(e)
+    return mantidas, removidas, novas_execs
+
+
+def chave_endereco(r):
+    num = (r.get("numero") or "").upper()
+    if not r.get("logradouro") or not num or num in ("S/N", "0"):
+        return None
+    digitos = re.sub(r"\D", "", num)
+    return f"{chave(r['logradouro'])}|{digitos}|{chave(r.get('bairro') or '')}"
+
+
+def reaproveitar_coordenadas(demandas):
+    """Demanda sem coordenada recebe a de outra demanda no MESMO endereço (rua + nº + bairro)."""
+    pontos = defaultdict(list)
+    for r in demandas:
+        r["precisao_coordenada"] = "PLANILHA" if r.get("latitude") is not None else None
+        k = chave_endereco(r)
+        if k and r.get("latitude") is not None:
+            pontos[k].append((r["latitude"], r["longitude"]))
     n = 0
     for r in demandas:
-        base = "|".join(chave(str(r.get(c) or "")) for c in
-                        ["data_recebimento", "solicitante", "descricao", "logradouro_completo", "assunto"])
-        h = hashlib.sha1(base.encode()).hexdigest()
-        r["hash_conteudo"] = h
-        r["possivel_duplicata_de"] = vistos.get(h)
-        if h in vistos:
+        if r.get("latitude") is not None:
+            continue
+        k = chave_endereco(r)
+        if k in pontos:
+            lats, lons = zip(*pontos[k])
+            r["latitude"] = round(sorted(lats)[len(lats) // 2], 7)
+            r["longitude"] = round(sorted(lons)[len(lons) // 2], 7)
+            r["precisao_coordenada"] = "MESMO ENDEREÇO DE OUTRA DEMANDA"
             n += 1
-            PEND.add({"id_origem": r["id_origem"], "arquivo": r["arquivo_origem"], "linha_excel": r["linha_excel"]},
-                     "*", "", "conteúdo idêntico a outra demanda (data, solicitante, descrição, endereço, assunto)",
-                     f"importada e sinalizada: possivel_duplicata_de = {vistos[h]}")
-        else:
-            vistos[h] = r["id_origem"]
     return n
 
 
@@ -540,10 +613,10 @@ ORDEM_SAIDA = [
     "prioridade", "motivo_prioridade", "alteracao_prioridade_interno", "alteracao_prioridade_externo",
     "data_alteracao_prioridade", "tipo_intervencao", "assunto", "sub_assunto", "assunto_original",
     "descricao", "logradouro", "numero", "referencia", "bairro", "logradouro_completo", "regional",
-    "latitude", "longitude", "programa_asfalto_novo", "nota_tecnica", "projeto", "medida_alternativa",
+    "latitude", "longitude", "precisao_coordenada", "programa_asfalto_novo", "nota_tecnica", "projeto", "medida_alternativa",
     "respondido", "data_resposta_email", "data_resposta_gabinete", "encaminhada_para",
     "data_encaminhamento", "geocode", "data_baixa_geocode", "data_execucao", "observacoes",
-    "marcada_duplicada", "possivel_duplicata_de", "hash_conteudo",
+    "marcada_duplicada", "ids_consolidados", "hash_conteudo",
 ]
 
 
@@ -564,7 +637,8 @@ def main(argv=None):
         todas_d += d
         todas_e += e
         total_ign += ign
-    n_dup = marcar_duplicatas(todas_d)
+    todas_d, removidas, todas_e = consolidar_duplicatas(todas_d, todas_e)
+    n_coord = reaproveitar_coordenadas(todas_d)
 
     a.saida.mkdir(parents=True, exist_ok=True)
     dem = pd.DataFrame(todas_d).reindex(columns=ORDEM_SAIDA)
@@ -573,14 +647,20 @@ def main(argv=None):
                                             "problema", "acao", "gravidade"])
 
     dem.to_csv(a.saida / "demandas.csv", index=False, encoding="utf-8")
+    rem = pd.DataFrame(removidas).reindex(columns=ORDEM_SAIDA[:-2] + ["consolidada_em"])
+    rem.to_csv(a.saida / "duplicatas_removidas.csv", index=False, encoding="utf-8-sig")
     exe.to_csv(a.saida / "execucoes.csv", index=False, encoding="utf-8")
     pen.to_csv(a.saida / "pendencias.csv", index=False, encoding="utf-8-sig")
 
     resumo = pd.concat([
         pd.DataFrame({"indicador": ["demandas importadas", "execuções", "linhas vazias ignoradas",
-                                    "possíveis duplicatas (sinalizadas)", "pendências ERRO",
-                                    "pendências AVISO", "pendências INFO"],
-                      "valor": [len(dem), len(exe), total_ign, n_dup,
+                                    "duplicatas consolidadas (não carregadas)",
+                                    "demandas com coordenada", "  da planilha", "  reaproveitada do mesmo endereço",
+                                    "demandas SEM coordenada",
+                                    "pendências ERRO", "pendências AVISO", "pendências INFO"],
+                      "valor": [len(dem), len(exe), total_ign, len(rem),
+                                dem.latitude.notna().sum(), (dem.precisao_coordenada == "PLANILHA").sum(), n_coord,
+                                dem.latitude.isna().sum(),
                                 (pen.gravidade == "ERRO").sum(), (pen.gravidade == "AVISO").sum(),
                                 (pen.gravidade == "INFO").sum()]}),
     ])
@@ -592,6 +672,7 @@ def main(argv=None):
         pen.to_excel(xw, sheet_name="pendencias", index=False)
         dem.to_excel(xw, sheet_name="demandas", index=False)
         exe.to_excel(xw, sheet_name="execucoes", index=False)
+        rem.to_excel(xw, sheet_name="duplicatas_removidas", index=False)
 
     print("\nResumo:")
     for _, r in resumo.iterrows():

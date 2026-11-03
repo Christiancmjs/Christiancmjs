@@ -43,8 +43,9 @@ São gerados em `saida/`:
 
 | Arquivo | Conteúdo |
 |---|---|
-| `demandas.csv` | uma linha por demanda, já padronizada (14.307 linhas) |
-| `execucoes.csv` | datas de execução por tipo de serviço (1.346 linhas) |
+| `demandas.csv` | uma linha por demanda, já padronizada e sem duplicatas (14.111 linhas) |
+| `execucoes.csv` | datas de execução por tipo de serviço (1.333 linhas) |
+| `duplicatas_removidas.csv` | as 196 cópias que não entram no sistema e em qual demanda cada uma foi consolidada |
 | `pendencias.csv` | cada valor corrigido, movido ou descartado, com arquivo, linha do Excel, valor original e ação tomada |
 | `revisao.xlsx` | resumo, pendências agrupadas por tipo, pendências detalhadas, demandas e execuções |
 
@@ -57,14 +58,20 @@ São gerados em `saida/`:
 2. Itens **AVISO** com "valor legado convertido por regra de-para": confira se
    as regras marcadas com `revisar = S` em `mapeamentos/valores.csv` refletem a
    decisão da gerência (por exemplo: STATUS `NÃO ANALISADO` → `EM ANÁLISE`).
-3. A coluna `possivel_duplicata_de` aponta 196 linhas com conteúdo idêntico a
-   outra (mesma data, solicitante, descrição, endereço e assunto). Elas **são
-   importadas**, mas devem ser conferidas. A coluna `marcada_duplicada` traz a
-   marcação "X" que já existia na planilha.
+3. **Duplicatas não são carregadas.** Quando duas ou mais linhas têm data,
+   solicitante, descrição, endereço e assunto idênticos, **só uma entra no
+   sistema** (196 cópias consolidadas). Fica a cópia com o status mais
+   avançado; no empate, a mais completa e, depois, a mais recente. Os campos
+   vazios dela são completados com os das outras cópias. Protocolos, NTs ou
+   registros diferentes são anotados em `observacoes`, e as execuções são
+   transferidas para ela. A coluna `ids_consolidados` lista as linhas fundidas,
+   e as cópias removidas ficam em `duplicatas_removidas.csv` (aba
+   `duplicatas_removidas`) para consulta. A coluna `marcada_duplicada` mantém o
+   "X" que já existia na planilha.
 
 Depois, carregue no banco. O arquivo `schema.sql` traz o modelo para
 PostgreSQL e os comandos `\copy` comentados no fim. Esse fluxo foi testado com
-os dois arquivos: 14.307 demandas e 1.346 execuções carregadas, sem nenhum
+os dois arquivos: 14.111 demandas e 1.333 execuções carregadas, sem nenhum
 valor fora das listas de domínio.
 
 ```bash
@@ -107,6 +114,34 @@ registradas como AVISO.
   com vírgula decimal.
 - Quando o sistema estiver no ar, o ideal é que as demandas novas sejam
   cadastradas direto nele e que a planilha deixe de ser a fonte.
+
+## 4a. Coordenadas (mapa)
+
+**Nem toda demanda tem coordenada.** Situação após a importação:
+
+| | Demandas |
+|---|---|
+| Coordenada vinda da planilha (2024-2025, corrigida) | 5.409 |
+| Reaproveitada de outra demanda no mesmo endereço (rua + nº + bairro) | 363 |
+| **Sem coordenada** | **8.339** (5.168 de 2024-2025 e **todas** as 3.171 de 2026) |
+
+O campo `precisao_coordenada` informa a origem de cada ponto. Das 8.339 sem
+coordenada, 2.474 têm rua, número e bairro (geocodificação precisa), 2.725 têm
+rua e bairro sem número (ponto aproximado ou cruzamento, a partir da
+referência) e 2.996 não têm rua separada, mas quase todas trazem o endereço em
+`logradouro_completo`.
+
+Para completar o mapa é preciso **geocodificar** esses endereços com um
+serviço externo. Opções, da mais precisa para a menos:
+
+1. a base de logradouros e lotes da Prefeitura (geoprocessamento), se houver;
+2. uma API de geocodificação (Google, HERE ou Mapbox), que exige chave e tem
+   custo baixo para esse volume;
+3. Nominatim/OpenStreetMap, gratuito mas mais lento e menos preciso em
+   endereços de periferia.
+
+Toda coordenada obtida assim deve ser gravada com `precisao_coordenada`
+(`ENDEREÇO EXATO`, `RUA`, `BAIRRO`) e revisada no mapa pela equipe.
 
 ## 5. Central de Numeração (planilhas de numeração DET-DPL e Ordens de Serviço)
 

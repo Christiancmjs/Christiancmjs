@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS demandas (
     regional                      TEXT,
     latitude                      NUMERIC(10,7),
     longitude                     NUMERIC(10,7),
+    precisao_coordenada           TEXT,                   -- PLANILHA | MESMO ENDEREÇO DE OUTRA DEMANDA | GEOCODIFICADO...
     programa_asfalto_novo         TEXT,
     nota_tecnica                  TEXT,
     projeto                       TEXT,
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS demandas (
     data_execucao                 DATE,
     observacoes                   TEXT,
     marcada_duplicada             BOOLEAN DEFAULT FALSE,  -- coluna DUPLICADAS = X na planilha
-    possivel_duplicata_de         TEXT,                   -- id_origem da 1ª ocorrência com conteúdo idêntico
+    ids_consolidados              TEXT,                   -- id_origem das cópias duplicadas fundidas nesta demanda
     hash_conteudo                 TEXT
 );
 
