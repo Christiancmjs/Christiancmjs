@@ -176,7 +176,7 @@ Consequências:
   alguém inseriu, apagou, ordenou ou mudou o tipo de uma linha, todos os
   números abaixo dela foram recalculados. O script guarda o valor de agora e
   compara com as NTs e projetos citados nas demandas (`vinculos_demandas.csv`).
-  Das 2.288 citações, 2.038 conferem, 243 têm o mesmo número com outro setor
+  Das 2.272 citações, 2.023 conferem, 242 têm o mesmo número com outro setor
   e 7 não existem no registro.
 - **O ano não zera o contador; o arquivo é que zera.** Linhas de 2025 lançadas
   na planilha de 2026 consumiram os números 1 a 3 das NTs de 2026, que por
